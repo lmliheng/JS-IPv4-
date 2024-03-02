@@ -1,7 +1,7 @@
 ## IPv4查询小站
 demo网址：http://ip.yunduanjianzhan.cn/
-!md1.png
-
+![image](https://github.com/lmliheng/JS-IPv4-/blob/main/md1.png)
+![image](https://github.com/lmliheng/JS-IPv4-/blob/main/md2.png)
 #### 技术栈：原生JS
 原理：接入API，上传数据至页面
 #### 站长目的
