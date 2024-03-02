@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon" href="./logo.png">
+    <title>IPv4地址查询工具</title>
+
+    <!-- ... 其他样式和meta标签 ... -->
+
+    <style>
+        /* ... 之前已有的样式 ... */
+        
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-image: url('./background.png');
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 90%;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 255, 255, 0.5);
+            text-align: center;
+            transition: all 0.3s ease-in-out;
+
+            position: relative; /* 添加相对定位以便伪元素效果 */
+
+            &::before {
+                content: '';
+                position: absolute;
+                top: -10px;
+                left: -10px;
+                right: -10px;
+                bottom: -10px;
+                z-index: -1;
+                background-color: inherit;
+                filter: blur(10px);
+                border-radius: inherit;
+            }
+        }
+
+        /* 按钮炫酷效果 */
+        button {
+            position: relative;
+            height: 30px;
+            width: 100px;
+            margin: 0 35px;
+            border-radius: 50px;
+            border: none;
+            outline: none;
+            background: #111;
+            color: #fff;
+            font-size: 20px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            
+            &:first-child,
+            &:last-child {
+                &::before {
+                    content: '';
+                    position: absolute;
+                    background: inherit;
+                    top: -5px;
+                    right: -5px;
+                    bottom: -5px;
+                    left: -5px;
+                    border-radius: 50px;
+                    filter: blur(20px);
+                    opacity: 0;
+                    transition: opacity .5s;
+                }
+                
+                &:hover {
+                    z-index: 1;
+                    animation: glow 8s linear infinite;
+                }
+            }
+
+            &:hover {
+                &::before {
+                    opacity: 1;
+                    z-index: -1;
+                }
+
+                background-size: 400%;
+            }
+
+            &:first-child:hover {
+                background: linear-gradient(90deg, #03a9f4, #f441a5, #ffeb3b, #03a9f4);
+            }
+
+            &:last-child:hover {
+                background: linear-gradient(90deg, #fa7199, #f5ce62, #e43603, #fa7199);
+            }
+        }
+
+        @keyframes glow {
+            0% { background-position: 0%; }
+            100% { background-position: 400%; }
+        }
+
+        @media (max-width: 767px) {
+            .container {
+                padding: 10px;
+            }
+
+            form, h1 {
+                width: 100%;
+            }
+
+            #ip-input {
+                width: 100%;
+            }
+        }
+
+        /* 表单输入框样式 */
+        #ip-input {
+            width: 50%;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            border-bottom: 2px solid #c48e2b;
+            outline: none;
+            color: #080000;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+
+        #ip-input:focus {
+            border-bottom-color: #609ee0;
+        }
+
+        /* 结果区域样式 */
+        .result-container {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .result {
+            line-height: 1.5;
+            color: #333;
+        }
+
+        @media (max-width: 767px) {
+            #ip-form,
+            .result-container {
+                width: calc(100% - 20px);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>IPv4地址查询工具</h1>
+    <div id="client-ip"></div>
+
+    <form id="ip-form">
+        <input type="text" id="ip-input" placeholder="请输入IPv4地址" required>
+        <button type="submit"><strong>查询</strong></button>
+    </form>
+
+    <div class="result-container" id="result">
+        <div class="result" id="response"></div>
+    </div>
+</div>
+
+<script>
+    // 获取并显示客户端IP信息
+    (async function () {
+        try {
+            const response = await fetch('https://ipinfo.io/json');
+            if (!response.ok) {
+                throw new Error(`无法获取客户端IP：HTTP状态码 ${response.status}`);
+            }
+            const clientIpData = await response.json();
+            document.getElementById('client-ip').innerHTML = `当前<strong>客户端</strong>的公网IP地址：<big><strong>${clientIpData.ip}</strong></big><br>由于API接口限速，点击查询后请耐心等待5秒左右`;
+
+            // 添加表单提交事件监听器
+            document.getElementById('ip-form').addEventListener('submit', async function(event) {
+                event.preventDefault();
+
+                const ipInput = document.getElementById('ip-input');
+                const ip = ipInput.value;
+                const apiUrl = 'http://ip-api.com/json/' + ip + '?lang=zh-CN';
+
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error(`无法获取IP地址信息：HTTP状态码 ${response.status}`);
+                }
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    document.getElementById('result').style.display = 'block';
+                    let infoHTML = '';
+                    for (const key in data) {
+                        if (key !== 'status') {
+                            infoHTML += `<p><strong>${key}:</strong> ${data[key]}</p>`;
+                        }
+                    }
+                    document.getElementById('response').innerHTML = infoHTML;
+                } else {
+                    alert('无法获取该IP地址的信息');
+                }
+
+                // 清空输入框内容
+                ipInput.value = '';
+            });
+        } catch (error) {
+            console.error('获取客户端IP失败:', error);
+            document.getElementById('client-ip').textContent = '无法获取您的公网IP地址，请稍候重试或检查网络连接';
+        }
+    })();
+</script>
+
+</body>
+</html>
